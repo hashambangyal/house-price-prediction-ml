@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "surface-dim":"#0b1326","secondary-fixed":"#a2eeff","primary-fixed-dim":"#89ceff",
+          "on-error":"#690005","surface-container-low":"#131b2e","tertiary-fixed-dim":"#c0c1ff",
+          "outline-variant":"#3e4850","on-primary-fixed":"#001e2f","tertiary-fixed":"#e1e0ff",
+          "primary-fixed":"#c9e6ff","on-surface-variant":"#bec8d2","on-surface":"#dae2fd",
+          "surface-tint":"#89ceff","secondary-fixed-dim":"#2fd9f4","inverse-primary":"#006591",
+          "tertiary":"#c0c1ff","surface-container-lowest":"#060e20","surface-container-highest":"#2d3449",
+          "background":"#0b1326","tertiary-container":"#8d90ff","on-tertiary":"#1000a9",
+          "on-secondary-fixed":"#001f25","on-tertiary-fixed":"#07006c","surface-bright":"#31394d",
+          "on-error-container":"#ffdad6","on-secondary-container":"#00515d","surface":"#0b1326",
+          "on-primary":"#00344d","on-primary-container":"#003751","primary":"#89ceff",
+          "on-background":"#dae2fd","inverse-surface":"#dae2fd","error":"#ffb4ab",
+          "on-secondary":"#00363e","on-secondary-fixed-variant":"#004e5a","secondary-container":"#00cbe6",
+          "surface-container-high":"#222a3d","secondary":"#5de6ff","surface-container":"#171f33",
+          "surface-variant":"#2d3449","on-tertiary-fixed-variant":"#2f2ebe","error-container":"#93000a",
+          "on-tertiary-container":"#1407ad","on-primary-fixed-variant":"#004c6e","primary-container":"#0ea5e9",
+          "outline":"#88929b","inverse-on-surface":"#283044"
+        },
+        borderRadius:{ DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px" },
+        spacing:{"section-gap":"120px","margin-page":"64px","container-max":"1440px","gutter":"24px","unit":"4px"},
+        fontFamily:{"label-caps":["Space Grotesk"],"body-lg":["Inter"],"h2":["Inter"],"display-xl":["Inter"],"h3":["Inter"],"h1":["Inter"],"data-point":["Space Grotesk"],"body-md":["Inter"]},
+        fontSize:{
+          "label-caps":["12px",{lineHeight:"1.0",letterSpacing:"0.1em",fontWeight:"600"}],
+          "body-lg":["18px",{lineHeight:"1.6",fontWeight:"400"}],
+          "h2":["32px",{lineHeight:"1.3",fontWeight:"700"}],
+          "display-xl":["64px",{lineHeight:"1.1",letterSpacing:"-0.04em",fontWeight:"800"}],
+          "h3":["24px",{lineHeight:"1.4",fontWeight:"600"}],
+          "h1":["48px",{lineHeight:"1.2",letterSpacing:"-0.02em",fontWeight:"700"}],
+          "data-point":["20px",{lineHeight:"1.0",fontWeight:"700"}],
+          "body-md":["16px",{lineHeight:"1.6",fontWeight:"400"}]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .glass-panel{background:rgba(255,255,255,0.03);backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,0.1);}
+  .etched-input{box-shadow:inset 2px 2px 4px rgba(0,0,0,0.4),inset -1px -1px 2px rgba(255,255,255,0.05);}
+  .neon-glow{box-shadow:0 0 20px rgba(14,165,233,0.3);}
+
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;}
+
+  @keyframes priceReveal{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .price-revealed{animation:priceReveal 0.4s ease forwards;}
+
+  @keyframes shake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-6px);}40%,80%{transform:translateX(6px);}}
+  .shake{animation:shake 0.4s ease;}
+
+  /* ── Autocomplete ── */
+  .autocomplete-wrapper{position:relative;}
+
+  .loc-input-locked{
+    opacity:0.4;
+    cursor:not-allowed;
+    pointer-events:none;
+  }
+
+  .ac-dropdown{
+    position:absolute;top:calc(100% + 6px);left:0;right:0;
+    background:#0d1828;
+    border:1px solid rgba(14,165,233,0.25);
+    border-radius:0.75rem;
+    max-height:210px;overflow-y:auto;
+    z-index:999;
+    box-shadow:0 10px 40px rgba(0,0,0,0.7);
+    display:none;
+  }
+  .ac-dropdown.open{display:block;}
+  .ac-dropdown::-webkit-scrollbar{width:4px;}
+  .ac-dropdown::-webkit-scrollbar-track{background:transparent;}
+  .ac-dropdown::-webkit-scrollbar-thumb{background:rgba(14,165,233,0.3);border-radius:2px;}
+
+  .ac-item{
+    padding:10px 16px;font-size:14px;color:#bec8d2;
+    cursor:pointer;transition:background 0.13s,color 0.13s;
+    border-bottom:1px solid rgba(255,255,255,0.04);
+  }
+  .ac-item:last-child{border-bottom:none;}
+  .ac-item:hover,.ac-item.hi{background:rgba(14,165,233,0.14);color:#89ceff;}
+  .ac-item mark{background:transparent;color:#38bdf8;font-weight:700;}
+  .ac-empty{padding:12px 16px;font-size:13px;color:#4a5568;text-align:center;}
+
+  .lock-icon{
+    position:absolute;right:14px;top:50%;transform:translateY(-50%);
+    color:rgba(14,165,233,0.35);font-size:20px;pointer-events:none;transition:opacity 0.3s;
+  }
+</style>
+</head>
+<body class="bg-surface-dim text-on-surface font-body-md selection:bg-primary-container selection:text-white">
+
+<!-- Nav -->
+<header class="fixed top-0 w-full flex justify-between items-center px-8 h-20 max-w-[1440px] left-1/2 -translate-x-1/2 z-50 bg-slate-900/40 backdrop-blur-2xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
+  <div class="font-['Space_Grotesk'] tracking-widest uppercase text-2xl font-black text-white drop-shadow-[0_0_10px_rgba(14,165,233,0.5)]">HOUSE PRICE PREDICTION</div>
+  <nav class="hidden md:flex items-center gap-8">
+    <a class="text-sky-400 border-b-2 border-sky-400 pb-1 font-bold font-label-caps text-label-caps" href="#">Predictor</a>
+    <a class="text-slate-400 hover:text-sky-200 transition-colors font-label-caps text-label-caps" href="https://github.com/hashambangyal?tab=repositories">Github</a>
+  </nav>
+  <div class="flex items-center gap-4">
+    <a href="https://www.linkedin.com/in/hashambangyal?utm_source=share_via&utm_content=profile&utm_medium=member_ios" target="_blank"
+       class="flex items-center gap-2 bg-white/5 hover:bg-white/10 transition-all duration-300 px-4 py-2 rounded-lg border border-white/10 group">
+      <span class="material-symbols-outlined text-sky-400">share</span>
+      <span class="font-label-caps text-label-caps text-slate-300">Connect on LinkedIn</span>
+    </a>
+    <span class="material-symbols-outlined text-slate-400 hover:text-sky-400 transition-colors cursor-pointer">account_circle</span>
+  </div>
+</header>
+
+<!-- Main -->
+<main class="relative min-h-screen pt-32 pb-24 overflow-hidden">
+  <div class="absolute inset-0 z-0">
+    <img class="w-full h-full object-cover grayscale opacity-40" src="https://lh3.googleusercontent.com/aida-public/AB6AXuChVzSYeQ0czpziThNEzRiE-JlLKuEjfGojT0BbmDGYARCjgvqZo14cyAThA3z0LS8aCA8nIRELiWDlRyrsFIeUk2FMR45VTHNUdPpAQ62McS0QNvvVFEJXPW2hHPPLBkiTSKqC0_c-j8-0j9eDyLNoBCbXjrv2CRwM3SlAwu3U4mmmA3eA6oo4z8VSeIjjGCZRjXl47wdBuygKAz6d-zU8YnOblxjxKfihxZHS_l64tJywFAZQj4P6U5YtkJa1GLfshKfD4-ERaU0"/>
+    <div class="absolute inset-0 bg-gradient-to-t from-surface-dim via-surface-dim/80 to-transparent"></div>
+  </div>
+
+  <div class="relative z-10 max-w-7xl mx-auto px-6">
+    <div class="flex flex-col items-center">
+      <h1 class="font-display-xl text-display-xl text-center mb-12 uppercase tracking-tighter text-white">
+        PRECISION VALUATION <span class="text-primary">ENGINE</span>
+      </h1>
+
+      <div class="w-full max-w-4xl glass-panel p-8 md:p-12 rounded-3xl neon-glow">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+
+          <!-- Area -->
+          <div class="space-y-2">
+            <label class="font-label-caps text-label-caps text-slate-400 px-1">AREA (MARLA)</label>
+            <div class="relative flex items-center">
+              <span class="material-symbols-outlined absolute left-4 text-sky-400/60">straighten</span>
+              <input id="input-area" type="number" min="0" step="0.5" placeholder="Enter size"
+                class="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl etched-input text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all font-data-point text-data-point"/>
+            </div>
+          </div>
+
+          <!-- Bedrooms -->
+          <div class="space-y-2">
+            <label class="font-label-caps text-label-caps text-slate-400 px-1">BEDROOMS</label>
+            <div class="relative flex items-center">
+              <span class="material-symbols-outlined absolute left-4 text-sky-400/60">bed</span>
+              <input id="input-bedrooms" type="number" min="0" step="1" placeholder="Count"
+                class="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl etched-input text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all font-data-point text-data-point"/>
+            </div>
+          </div>
+
+          <!-- Bathrooms -->
+          <div class="space-y-2">
+            <label class="font-label-caps text-label-caps text-slate-400 px-1">BATHROOMS</label>
+            <div class="relative flex items-center">
+              <span class="material-symbols-outlined absolute left-4 text-sky-400/60">bathtub</span>
+              <input id="input-baths" type="number" min="0" step="1" placeholder="Count"
+                class="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl etched-input text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all font-data-point text-data-point"/>
+            </div>
+          </div>
+
+          <!-- House Type -->
+          <div class="space-y-2">
+            <label class="font-label-caps text-label-caps text-slate-400 px-1">HOUSE TYPE</label>
+            <div class="relative flex items-center">
+              <span class="material-symbols-outlined absolute left-4 text-sky-400/60">home</span>
+              <select id="input-type" class="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl etched-input text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all appearance-none font-body-md">
+                <option class="bg-slate-900" value="House">House</option>
+                <option class="bg-slate-900" value="Flat">Flat</option>
+                <option class="bg-slate-900" value="Lower Portion">Lower Portion</option>
+                <option class="bg-slate-900" value="Upper Portion">Upper Portion</option>
+                <option class="bg-slate-900" value="Penthouse">Penthouse</option>
+                <option class="bg-slate-900" value="Room">Room</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- City -->
+          <div class="space-y-2">
+            <label class="font-label-caps text-label-caps text-slate-400 px-1">CITY</label>
+            <div class="relative flex items-center">
+              <span class="material-symbols-outlined absolute left-4 text-sky-400/60">location_city</span>
+              <select id="input-city" onchange="onCityChange()"
+                class="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl etched-input text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all appearance-none font-body-md">
+                <option class="bg-slate-900" value="">— Select City —</option>
+                <option class="bg-slate-900" value="Lahore">Lahore</option>
+                <option class="bg-slate-900" value="Islamabad">Islamabad</option>
+                <option class="bg-slate-900" value="Karachi">Karachi</option>
+                <option class="bg-slate-900" value="Rawalpindi">Rawalpindi</option>
+                <option class="bg-slate-900" value="Faisalabad">Faisalabad</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Location — city-gated autocomplete, spans full row on lg -->
+          <div class="space-y-2 lg:col-span-1">
+            <label class="font-label-caps text-label-caps text-slate-400 px-1">LOCATION</label>
+            <div class="autocomplete-wrapper">
+              <div class="relative flex items-center">
+                <span class="material-symbols-outlined absolute left-4 text-sky-400/60">location_on</span>
+                <input id="input-location" type="text"
+                  placeholder="Select city first"
+                  autocomplete="off"
+                  disabled
+                  class="loc-input-locked w-full pl-12 pr-10 py-4 bg-white/5 border border-white/10 rounded-xl etched-input text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all font-body-md"
+                  oninput="onLocInput()"
+                  onfocus="onLocFocus()"
+                  onkeydown="onLocKeydown(event)"/>
+                <span id="lock-icon" class="lock-icon material-symbols-outlined">lock</span>
+              </div>
+              <!-- stores the confirmed selection -->
+              <input type="hidden" id="location-value"/>
+              <div id="ac-dropdown" class="ac-dropdown"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Predict -->
+        <div class="flex flex-col items-center gap-8">
+          <button id="predict-btn" onclick="predictPrice()"
+            class="group relative w-full md:w-auto px-16 py-5 bg-primary-container hover:bg-sky-400 transition-all duration-300 rounded-full overflow-hidden shadow-[0_0_30px_rgba(14,165,233,0.4)] active:scale-95">
+            <div class="relative z-10 flex items-center justify-center gap-3">
+              <span id="btn-label" class="font-label-caps text-label-caps text-white text-lg tracking-[0.2em]">PREDICT PRICE</span>
+              <span id="btn-icon" class="material-symbols-outlined text-white">analytics</span>
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-r from-sky-400 via-sky-300 to-sky-400 opacity-0 group-hover:opacity-20 transition-opacity animate-pulse"></div>
+          </button>
+
+          <div class="text-center">
+            <div class="font-label-caps text-label-caps text-sky-400/60 mb-2">OUTPUT METRIC</div>
+            <div id="price-display" class="font-display-xl text-4xl md:text-5xl text-white font-extrabold tracking-tight">
+              Predicted Price: <span id="price-value" class="text-sky-400 opacity-20">PKR --,---,---</span>
+            </div>
+            <div id="error-msg" class="hidden mt-3 text-red-400 font-label-caps text-label-caps"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bento -->
+    <div class="mt-section-gap grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 glass-panel p-8 rounded-3xl border-l-4 border-l-sky-500">
+        <h2 class="font-h2 text-h2 text-white mb-6">About This Model</h2>
+        <p class="font-body-md text-slate-400 mb-6 leading-relaxed">
+          A practice project engineered to master high-dimensional data regression. This system analyzes complex urban property markets with institutional-grade accuracy.
+        </p>
+        <div class="flex items-center gap-4 py-4 border-t border-white/5">
+          <div class="h-12 w-12 rounded-full bg-sky-500/20 flex items-center justify-center">
+            <span class="material-symbols-outlined text-sky-400">terminal</span>
+          </div>
+          <div>
+            <div class="font-label-caps text-slate-200">Took Dataset from Kaggle</div>
+            <div class="text-xs text-sky-500 uppercase tracking-widest">( 16 laks rows, 10 column )</div>
+          </div>
+        </div>
+      </div>
+      <div class="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="glass-panel p-6 rounded-3xl space-y-4">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-sky-500">architecture</span>
+            <span class="font-label-caps text-white">Algorithm Evolution</span>
+          </div>
+          <p class="text-sm text-slate-400">Upgraded from Random Forest to a powerful <span class="text-sky-300">CatBoost Regressor</span> — handles categorical features (city, location, property type) natively with superior gradient boosting performance.</p>
+        </div>
+        <div class="glass-panel p-6 rounded-3xl space-y-4 bg-gradient-to-br from-sky-500/10 to-transparent">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-sky-500">query_stats</span>
+            <span class="font-label-caps text-white">Accuracy Metrics</span>
+          </div>
+          <div class="space-y-3">
+            <div class="flex justify-between items-end">
+              <span class="text-xs text-slate-400">TRAINING R²</span>
+              <span class="font-data-point text-sky-400">83.2%</span>
+            </div>
+            <div class="w-full bg-white/10 h-1 rounded-full overflow-hidden">
+              <div class="bg-sky-500 h-full w-[83.2%] shadow-[0_0_10px_rgba(14,165,233,0.5)]"></div>
+            </div>
+            <div class="flex justify-between items-end pt-2">
+              <span class="text-xs text-slate-400">TESTING R²</span>
+              <span class="font-data-point text-sky-400">85.5%</span>
+            </div>
+            <div class="w-full bg-white/10 h-1 rounded-full overflow-hidden">
+              <div class="bg-sky-500 h-full w-[88.5%] shadow-[0_0_10px_rgba(14,165,233,0.5)]"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="bg-slate-950 w-full mt-24 px-12 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto py-12 border-t border-slate-800">
+  <div class="flex flex-col gap-4">
+    <div class="text-lg font-bold text-slate-200 uppercase tracking-widest font-label-caps">PRECISION ANALYTICS</div>
+    <p class="font-['Inter'] text-xs tracking-widest uppercase opacity-60 text-slate-500">© 2024 PRECISION ANALYTICS | ENGINEERED FOR AUTHORITY</p>
+  </div>
+  <div class="flex flex-wrap gap-x-8 gap-y-4 md:justify-end items-center">
+    <a class="text-slate-500 hover:text-sky-300 transition-colors font-['Inter'] text-xs tracking-widest uppercase opacity-60" href="#">LinkedIn</a>
+    <a class="text-slate-500 hover:text-sky-300 transition-colors font-['Inter'] text-xs tracking-widest uppercase opacity-60" href="#">GitHub</a>
+    <a class="text-slate-500 hover:text-sky-300 transition-colors font-['Inter'] text-xs tracking-widest uppercase opacity-60" href="#">Model Documentation</a>
+    <a class="text-slate-500 hover:text-sky-300 transition-colors font-['Inter'] text-xs tracking-widest uppercase opacity-60" href="#">Privacy Protocol</a>
+  </div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════
+//  CITY → LOCATIONS  (sorted alphabetically)
+// ═══════════════════════════════════════════════
+const CITY_LOCATIONS = {
+  "Faisalabad": ["Abdullahpur","Ahmad Nagar","Al Masoom Town","Batala Colony","Canal View Hosuing Scheme","Civil Lines","D-Type Colony","Dijkot Road","Ghulam Mohammad Abad","Gulistan Colony","Gulshan-e-Madina","Gulshan-e-Ravi","Harchan Pura","Industrial Estate","Jail Road","Jaranwala Road","Jhang Road","Khawaja Gardens","Khayaban-e-Manzoor","Khayaban-e-Sir Syed","Khuajaabad","Kotwali Road","Madina Town","Millat Chowk","Millat Town","Model Town","Motorway City","Muslim Town","New Civil Lines","New Sargodha Road","Niamuana Bypass Road","Officers Colony","Pansera Road","Paradise Valley","Peoples Colony","Qamar Garden","Rasool Nagar","Raza Abad","Sadat Colony","Saleemi Town","Sammundri Road","Sargodha Road","Satiana Road","Sheikhupura Road","Sitara Colony","SMD Homes","Susan Road","T&T Colony","Tariq Abad","University Town","Usman Town","Wapda City","Waris Pura","Zulfiqar Colony"],
+  "Islamabad": ["12th Avenue","Ahmed Town","Airline Avenue","B-17","Bahria Town","Bani Gala","Bokra Road","C-15","CBR Town","Chak Shehzad","D-12","DHA Defence","Diplomatic Enclave","E-11","E-16","Embassy Road","Engineering Co-operative Housing (ECHS)","F-10","F-11","F-15","F-16","F-6","F-7","F-8","G-10","G-11","G-13","G-14","G-15","G-16","G-17","G-6","G-7","G-8","G-9","Golra Road","Ghauri Town","Gulberg Greens","Gulshan-e-Sehat","H-8","H-9","H-10","H-11","H-12","H-13","Humak","I-8","I-9","I-10","I-11","I-12","I-14","I-15","I-16","Islamabad Expressway","J-7","Judicial Colony","Kashmir Highway","Korang Road","Korang Town","Koral","Lehtrar Road","Lohi Bher","Margalla Hills","Margalla Town","Model Town","Naval Anchorage","Noon","Pakistan Intelligence Bureau Housing Society","Pakistan Town","Peshawar Road","Pir Sohawa","PWD Housing Society","Rawat","Saidpur Village","Sector E-12","Sector F-17","Sector H-14","Sector H-15","Sector H-16","Serena Hills","Sihala Valley","Simly Dam Road","Sohan","Tarlai","Tramri","Zaraj Housing Society"],
+  "Karachi": ["Abul Hassan Isphani Road","Al-Jadeed Residency","Azizabad","Bahadurabad","Baldia Town","Bath Island","Bin Qasim Town","Bufferzone","Cantt","Clifton","DHA City","DHA Defence","Defence View","Erum Villas","FB Area","Federal B Area","Gadap Town","Garden East","Garden West","Gulberg Town","Gulistan-e-Jauhar","Gulshan-e-Bihar","Gulshan-e-Ghazian","Gulshan-e-Iqbal Town","Gulshan-e-Maymar","Humaira Town","Jamaluddin Afghani Road","Jamshed Town","KDA Officers Society","Karachi Golf City","Keamari","Korangi","Korangi Industrial Area","Lalazar","Landhi","Liaquatabad","Lyari","Malir","Malir Cantonment","Mangopir","Mehmoodabad","Model Colony","Nagan Chowrangi","Naseerabad","Naval Housing Society","Nazimabad","New Karachi","New Saeedabad","North Karachi","North Nazimabad","Orangi Town","Others","PECHS","PIB Colony","Pak Colony","Saddar","Samanabad","Scheme 33","Shah Faisal Colony","Shahra-e-Jahangir","Shahra-e-Liaquat","Surjani Town"],
+  "Lahore": ["Al Raheem Town","Al-Hafeez Garden Road","Allama Iqbal Town","Askari","Bahria Town","Barki Road","Bedian Road","Begum Kot","Bhatta Chowk","Canal Road","Cantt","Cavalry Ground","Chungi Amar Sadhu","College Road","Data Darbar","Defence Fort","Defence Road","DHA Defence","Dharampura","Durand Road","Eden","EME Society","Empress Road","Faisal Town","Ferozpur Road","Ferozepur Road","Garden Town","Garhi Shahu","Ghazi Road","Green Town","Gulberg","Gulberg 1","Gulberg 2","Gulberg 3","Gulberg 4","Gulberg 5","Gulshan Colony","Gulshan-e-Ravi","Gulgasht","Halloki","Hanjarwal","Harbanspura","Ichhra","Iqbal Town","Izmir Town","Johar Park","Johar Town","Kahna","Karim Block","Khokher Town","Kot Lakhpat","Lake City","Liberty Market","Link Road","Lytton Road","Main Boulevard","Mall Road","Manga Mandi","Mateen Garden","Mian Mir","Military Accounts Housing Society","Model Town","Mozang","Mughalpura","Multan Road","Muslim Town","Mustafa Town","Nawaz Sharif Park","New Garden Town","New Muslim Town","Nishtar Town","Outfall Road","PAF Colony","Pak Arab Housing Society","Park Road","Phase 1","Phase 2","Phase 3","Phase 4","Phase 5","Phase 6","Phase 7","Phase 8","Phase 9","Qurtaba Chowk","Raiwind Road","Rana Shaukat Mehmood Road","Ring Road","Sagian Road","Samanabad","Samanzar Colony","Shadman","Shadbagh","Shaheen Block","Shahkam Chowk","Shalimar Link Road","Shalimar Town","Sher Shah","Shaukat Khanum Road","Sultan Colony","Sundar","Thokar Niaz Baig","Township","Upper Mall","Valencia Town","Wahdat Colony","Wahga Town","Walled City","Walton Road","Wapda Town","Zaman Park"],
+  "Rawalpindi": ["Abdullah City","Adyala Road","Airport Housing Society","Asghar Mall","Askari 1","Askari 2","Askari 3","Askari 4","Askari 5","Askari 6","Askari 7","Askari 8","Askari 9","Askari 10","Askari 11","Askari 12","Askari 13","Askari 14","Bahria Phase 1","Bahria Phase 2","Bahria Phase 3","Bahria Phase 4","Bahria Phase 5","Bahria Phase 6","Bahria Phase 7","Bahria Phase 8","Bahria Town Rawalpindi","Bank Road","Barakaho","Banni","Capital Awami Villas","Chaklala","Chaklala Scheme","Chakri Road","Chak Beli Khan","CMH Road","Dhoke Syedan","Dhok Hassu","Dhok Kashmirian","Dhok Naju","Dhok Paracha","Dhok Ratta","Dhok Ratta Road","Dhok Wali","Double Road","Fauji Foundation","Firdosi Road","Gawalmandi","Gulistan Colony","Gulshan Abad","Gulshan-e-Zaheer Colony","Hasnain Colony","Hazara Colony","Humak","Islamabad Highway","Jinnah Road","Kahuta Road","Kallar Syedan","Katchery Road","Khayaban-e-Sir Syed","Lalazar","Lalkurti","Liaquat Bagh","Mandra","Media Town","Misrial Road","Model Town","Morgah","Murree Road","New City","New Lalazar","Old Airport Road","PAF Residential Area","Peshawar Road","Pindora","Pirwadhai","Police Lines","Qasim Market","Raja Bazar","Rawalpindi Cantt","Rawat","Saddar","Satellite Town","Scheme 3","Scheme 4","Shaheen Town","Sihala","Sir Syed Road","Taxila","Tench Bhatta","Topi Road","Tulsa Road","Wah Cantt","War Office","Westridge","Wireless Residential Colony"]
+};
+
+// ═══════════════════════════════════════════════
+//  AUTOCOMPLETE ENGINE
+// ═══════════════════════════════════════════════
+let acList = [];       // locations for selected city
+let acHi   = -1;       // highlighted index
+
+function onCityChange() {
+  const city   = document.getElementById('input-city').value;
+  const inp    = document.getElementById('input-location');
+  const hidden = document.getElementById('location-value');
+  const lock   = document.getElementById('lock-icon');
+
+  inp.value = '';
+  hidden.value = '';
+  acHi = -1;
+  closeAC();
+
+  if (city && CITY_LOCATIONS[city]) {
+    acList = CITY_LOCATIONS[city];          // already sorted
+    inp.disabled = false;
+    inp.classList.remove('loc-input-locked');
+    inp.placeholder = 'Type to search location…';
+    lock.style.opacity = '0';
+  } else {
+    acList = [];
+    inp.disabled = true;
+    inp.classList.add('loc-input-locked');
+    inp.placeholder = 'Select city first';
+    lock.style.opacity = '1';
+  }
+}
+
+function onLocInput() {
+  document.getElementById('location-value').value = '';   // clear confirmed value until user picks
+  acHi = -1;
+  renderAC(document.getElementById('input-location').value.trim());
+}
+
+function onLocFocus() {
+  renderAC(document.getElementById('input-location').value.trim());
+}
+
+function renderAC(q) {
+  const dd = document.getElementById('ac-dropdown');
+  dd.innerHTML = '';
+  acHi = -1;
+
+  const matches = q
+    ? acList.filter(l => l.toLowerCase().includes(q.toLowerCase()))
+    : acList;
+
+  if (!matches.length) {
+    dd.innerHTML = '<div class="ac-empty">No locations found</div>';
+    dd.classList.add('open');
+    return;
+  }
+
+  const re = q ? new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi') : null;
+
+  matches.forEach(loc => {
+    const el = document.createElement('div');
+    el.className = 'ac-item';
+    el.innerHTML = re ? loc.replace(re, '<mark>$1</mark>') : loc;
+    el.addEventListener('mousedown', e => { e.preventDefault(); pickLoc(loc); });
+    dd.appendChild(el);
+  });
+
+  dd.classList.add('open');
+}
+
+function onLocKeydown(e) {
+  const dd    = document.getElementById('ac-dropdown');
+  const items = dd.querySelectorAll('.ac-item');
+  if (!dd.classList.contains('open') || !items.length) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    acHi = Math.min(acHi + 1, items.length - 1);
+    highlight(items);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    acHi = Math.max(acHi - 1, 0);
+    highlight(items);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (acHi >= 0 && items[acHi]) pickLoc(items[acHi].textContent);
+  } else if (e.key === 'Escape') {
+    closeAC();
+  }
+}
+
+function highlight(items) {
+  items.forEach((el, i) => {
+    el.classList.toggle('hi', i === acHi);
+    if (i === acHi) el.scrollIntoView({ block:'nearest' });
+  });
+}
+
+function pickLoc(loc) {
+  document.getElementById('input-location').value = loc;
+  document.getElementById('location-value').value = loc;
+  closeAC();
+}
+
+function closeAC() {
+  document.getElementById('ac-dropdown').classList.remove('open');
+  acHi = -1;
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.autocomplete-wrapper')) closeAC();
+});
+
+// ═══════════════════════════════════════════════
+//  PREDICTION  — CatBoost payload (raw strings)
+// ═══════════════════════════════════════════════
+const API_URL = 'http://127.0.0.1:5000/predict';
+
+function formatPKR(n) {
+  return 'PKR ' + Math.round(n).toLocaleString('en-PK');
+}
+
+// CatBoost model receives categorical columns as raw string values
+// Columns (from column.pkl): location, city, baths, bedrooms, area_marla, property_type
+function buildPayload(area, bedrooms, baths, propertyType, city, location) {
+  return {
+    location    : location,
+    city        : city,
+    baths       : baths,
+    bedrooms    : bedrooms,
+    area_marla  : area,
+    property_type: propertyType
+  };
+}
+
+function setLoading(on) {
+  const btn   = document.getElementById('predict-btn');
+  const label = document.getElementById('btn-label');
+  const icon  = document.getElementById('btn-icon');
+  if (on) {
+    btn.disabled = true;
+    btn.classList.add('opacity-70','cursor-not-allowed');
+    label.textContent = 'ANALYZING';
+    icon.innerHTML = '<span class="spinner"></span>';
+  } else {
+    btn.disabled = false;
+    btn.classList.remove('opacity-70','cursor-not-allowed');
+    label.textContent = 'PREDICT PRICE';
+    icon.textContent  = 'analytics';
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  const d = document.getElementById('price-display');
+  d.classList.remove('shake');
+  void d.offsetWidth;
+  d.classList.add('shake');
+  setTimeout(() => d.classList.remove('shake'), 500);
+}
+
+function clearError() {
+  document.getElementById('error-msg').classList.add('hidden');
+}
+
+function showPrice(p) {
+  const el = document.getElementById('price-value');
+  el.classList.remove('opacity-20','price-revealed');
+  void el.offsetWidth;
+  el.textContent = formatPKR(p);
+  el.classList.add('price-revealed');
+}
+
+async function predictPrice() {
+  clearError();
+
+  const area     = parseFloat(document.getElementById('input-area').value);
+  const bedrooms = parseInt(document.getElementById('input-bedrooms').value);
+  const baths    = parseInt(document.getElementById('input-baths').value);
+  const propType = document.getElementById('input-type').value;
+  const city     = document.getElementById('input-city').value;
+  const location = document.getElementById('location-value').value;
+
+  // Validation
+  if (!city)                         { showError('⚠ Please select a city.'); return; }
+  if (!location)                     { showError('⚠ Please select a location from the list.'); return; }
+  if (!area || area <= 0)            { showError('⚠ Please enter a valid area in Marla.'); return; }
+  if (isNaN(bedrooms) || bedrooms < 0) { showError('⚠ Please enter a valid number of bedrooms.'); return; }
+  if (isNaN(baths)    || baths < 0)    { showError('⚠ Please enter a valid number of bathrooms.'); return; }
+
+  setLoading(true);
+  try {
+    const res = await fetch(API_URL, {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify(buildPayload(area, bedrooms, baths, propType, city, location))
+    });
+
+    if (!res.ok) throw new Error(`Server error ${res.status}: ${await res.text()}`);
+
+    const data  = await res.json();
+    const price = data.Predictiedprice ?? data.predicted_price ?? data.price;
+    if (price == null) throw new Error('Unexpected response format from server.');
+
+    showPrice(price);
+  } catch (err) {
+    console.error(err);
+    showError(
+      err.message.includes('Failed to fetch') || err.message.includes('NetworkError')
+        ? '⚠ Cannot reach Flask server — make sure app.py is running on port 5000.'
+        : '⚠ ' + err.message
+    );
+  } finally {
+    setLoading(false);
+  }
+}
+
+// Enter key triggers prediction (but not inside the location field, where Enter picks a suggestion)
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.activeElement.id !== 'input-location') predictPrice();
+});
+</script>
+</body>
+</html>
