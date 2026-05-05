@@ -25,7 +25,7 @@ def predict():
     pred = model.predict(df)
     price = np.expm1(pred)
 
-    return jsonify({"PredictedPrice": float(price[0])})
+    return jsonify({"Predictiedprice": float(price[0])})
 
 
 if __name__ == "__main__":
