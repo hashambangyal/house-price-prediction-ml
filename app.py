@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import joblib 
 import pandas as pd
 import numpy as np
@@ -14,21 +14,18 @@ columns = joblib.load('column.pkl')
 
 @app.route('/')
 def home():
-    return "House Prediction API running"
+    return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.json
-
     df = pd.DataFrame([data])
     df = df.reindex(columns=columns, fill_value=0)
 
     pred = model.predict(df)
     price = np.expm1(pred)
 
-    return jsonify({
-        "PredictedPrice": float(price[0])
-    })
+    return jsonify({"PredictedPrice": float(price[0])})
 
 
 if __name__ == "__main__":
